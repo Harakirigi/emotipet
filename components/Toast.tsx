@@ -18,22 +18,28 @@ const Toast: React.FC<ToastProps> = ({
     const getBackgroundColor = () => {
         switch (type) {
             case "success":
-                return "bg-green-500";
+                return "border-success bg-success-10";
             case "error":
-                return "bg-red-500";
+                return "border-danger bg-danger-10";
             case "warning":
-                return "bg-yellow-500";
+                return "border-warning bg-warning-10";
             case "info":
-                return "bg-blue-500";
+                return "border-info bg-info-10";
             default:
-                return "bg-gray-800";
+                return "border-white bg-gray-800";
         }
     };
 
     const getTextColor = () => {
         switch (type) {
+            case "success":
+                return "text-success";
+            case "error":
+                return "text-danger";
             case "warning":
-                return "text-gray-800";
+                return "text-warning";
+            case "info":
+                return "text-info";
             default:
                 return "text-white";
         }
@@ -46,7 +52,7 @@ const Toast: React.FC<ToastProps> = ({
             className={`absolute left-0 right-0 ${positionStyle} flex items-center`}
         >
             <View
-                className={`${getBackgroundColor()} rounded-lg px-4 py-3 shadow-lg mx-4`}
+                className={`${getBackgroundColor()} rounded-full border-2 max-w-[90%] px-4 py-3 shadow-lg mx-4`}
             >
                 <Text className={`${getTextColor()} font-medium`}>
                     {message}

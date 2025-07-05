@@ -2,10 +2,11 @@ import { supabase } from "@/constants/supabase";
 import { useLogger } from "@/hooks/useLogger";
 import { AppUser } from "@/models/user";
 import { StorageService } from "@/services/storageService";
-import * as bcrypt from "bcryptjs";
+import Base64 from "crypto-js/enc-base64";
+import SHA256 from "crypto-js/sha256";
 import { useFocusEffect, useRouter } from "expo-router";
 import React, { createContext, useContext, useEffect, useState } from "react";
-import { v4 as uuidv4 } from "uuid";
+import uuid from 'react-native-uuid';
 
 
 interface UserContextType {
@@ -36,6 +37,10 @@ export const UserProvider: React.FC<{ children: React.ReactNode }> = ({
     const logger = useLogger();
     const storageService = new StorageService(logger);
     const router = useRouter();
+
+    const hashPassword = (password: string) => Base64.stringify(SHA256(password));
+    const comparePassword = (input: string, storedHash: string) =>
+    hashPassword(input) === storedHash;
 
     useEffect(() => {
         const loadUser = async () => {
@@ -93,7 +98,7 @@ export const UserProvider: React.FC<{ children: React.ReactNode }> = ({
         try {
             const localUser = await storageService.loadUser();
             if (localUser && localUser.username === username) {
-                if (bcrypt.compareSync(password, localUser.password)) {
+                if (comparePassword(password, localUser.password)) {
                     setUser(localUser);
                     await storageService.syncUserToCloud(localUser);
                     // Pet check is handled by useFocusEffect
@@ -104,15 +109,15 @@ export const UserProvider: React.FC<{ children: React.ReactNode }> = ({
 
             const cloudUser = await storageService.loadUserFromCloud(username);
             if (!cloudUser) return "Invalid username or password";
-            if (!bcrypt.compareSync(password, cloudUser.password))
+            if (!comparePassword(password, cloudUser.password))
                 return "Invalid username or password";
 
             setUser(cloudUser);
             await storageService.saveUser(cloudUser);
             // Pet check is handled by useFocusEffect
             return null;
-        } catch (e) {
-            logger.error("Login error", { error: e });
+        } catch (e: any) {
+            logger.error("Login error", { error: e?.message || e?.toString?.() || JSON.stringify(e) });
             return "Unexpected error occurred";
         }
     };
@@ -130,21 +135,27 @@ export const UserProvider: React.FC<{ children: React.ReactNode }> = ({
                 return "Username already exists";
             if (password.length < 6)
                 return "Password must be at least 6 characters";
-
-            const hashedPassword = bcrypt.hashSync(password, 10);
+            logger.debug('requirements passed!')
+            
+            const hashedPassword = hashPassword(password);
+            logger.debug('password hashed!')
             const newUser: AppUser = {
-                id: uuidv4(),
+                id: uuid.v4() as string,
                 username,
                 password: hashedPassword,
                 emotiCoins: 1000,
             };
             setUser(newUser);
+            logger.debug('user created!')
             await storageService.saveUser(newUser);
+            logger.debug('user saved to local storage!')
             await storageService.syncUserToCloud(newUser);
+            logger.debug('user saved to cloud!')
             router.replace("/pet-naming");
+            logger.debug('user moved to /pet-naming!')
             return null;
-        } catch (e) {
-            logger.error("Signup error", { error: e });
+        } catch (e: any) {
+            logger.error("Signup error", { error: e?.message || e?.toString?.() || JSON.stringify(e) });
             return "Unexpected error occurred";
         }
     };

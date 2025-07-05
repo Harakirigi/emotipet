@@ -72,11 +72,11 @@ const Input = forwardRef<TextInput, InputProps>(
             "w-full border border-gray-300 bg-white px-3 py-2 text-sm text-gray-400 rounded-xl";
 
         const focusedStyle = isFocused
-            ? "border-accent placeholder-gray-600"
+            ? "border-2 border-accent placeholder-gray-600"
             : "placeholder-transparent";
 
         const hoveredStyle = isHovered
-            ? "border-accent placeholder-gray-600"
+            ? "border-2 border-accent placeholder-gray-600"
             : "";
 
         const disabledStyle = readOnly ? "cursor-not-allowed opacity-50" : "";
@@ -85,7 +85,7 @@ const Input = forwardRef<TextInput, InputProps>(
             <View className="mb-4">
                 {inputLabel && (
                     <Text
-                        className={`mx-2 mb-2 text-sm ${isFocused ? "text-accent" : "text-gray-400"}`}
+                        className={`mx-2 mb-2 text-sm ${isFocused ? "text-accent font-medium" : "text-gray-400"}`}
                     >
                         {inputLabel}
                     </Text>
